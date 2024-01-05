@@ -1,0 +1,15 @@
+lab start persisting-lab
+podman volume create postgres-vol
+podman volume import postgres-vol ~/DO188/labs/persisting-lab/postgres-vol.tar.gz
+podman network create persisting-net
+podman run --name persisting-db -d --net persisting-net -e POSTGRESQL_USER=user -e POSTGRESQL_PASSWORD=pass  -e POSTGRESQL_DATABASE=db  --mount='type=volume,src=postgres-vol,dst=/var/lib/pgsql/data'  registry.ocp4.example.com:8443/rhel9/postgresql-13:1
+podman run --name persisting-backend -d -e DB_HOST=persisting-db -p 8080:8080 --net persisting-net registry.ocp4.example.com:8443/redhattraining/podman-urlshortener-backend
+podman run --name persisting-frontend -d --net persisting-net -p 3000:8080 registry.ocp4.example.com:8443/redhattraining/podman-urlshortener-frontend
+lab finish persisting-lab
+
+Summary
+Containers use a copy-on-write (COW) file system.
+Containers use a thin runtime layer, which is ephemeral by default.
+You can mount volumes and bind mounts to persist container data.
+Some workloads, such as databases, might experience performance problems with the COW file system.
+You can use Podman volumes to avoid using the COW file system.

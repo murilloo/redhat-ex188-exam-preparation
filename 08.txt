@@ -1,0 +1,11 @@
+lab start openshift-multipod
+oc login -u developer -p developer https://api.ocp4.example.com:6443
+oc project ocp-multipod
+oc create deployment gitea --port 3030 --image=registry.ocp4.example.com:8443/redhattraining/podman-gitea:latest
+oc get po
+oc create deployment gitea-postgres --port 5432 -o yaml --image=registry.ocp4.example.com:8443/rhel9/postgresql-13:1 --dry-run=client > postgres.yaml
+oc create -f postgres.yaml
+oc expose deployment gitea-postgres
+oc expose deployment gitea
+oc expose service gitea
+oc get route

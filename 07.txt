@@ -1,0 +1,32 @@
+lab start compose-lab
+cd ~/DO188/labs/compose-lab
+
+vi compose.yml
+
+services:
+  wiremock:
+    container_name: "quotes-provider"
+    image: "registry.ocp4.example.com:8443/redhattraining/wiremock"
+    volumes:
+      - ~/DO188/labs/compose-lab/wiremock/stubs:/home/wiremock:Z
+    networks:
+      - lab-net
+  quotes-api:
+    container_name: "quotes-api"
+    image: "registry.ocp4.example.com:8443/redhattraining/podman-quotesapi-compose"
+    ports:
+      - "8080:8080"
+    networks:
+      - lab-net
+    environment:
+      QUOTES_SERVICE: "http://quotes-provider:8080"
+  quotes-ui:
+    container_name: "quotes-ui"
+    image: "registry.ocp4.example.com:8443/redhattraining/podman-quotes-ui"
+    ports:
+      - "3000:8080"
+
+networks:
+  lab-net: {}
+
+podman-compose up -d

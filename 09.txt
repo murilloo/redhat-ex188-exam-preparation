@@ -1,0 +1,34 @@
+lab start comprehensive-review
+podman network create beeper-backend
+podman network create beeper-frontend
+podman volume create beeper-data
+podman run -d --name beeper-db -e POSTGRESQL_USER=beeper -e POSTGRESQL_PASSWORD=beeper123 -e POSTGRESQL_DATABASE=beeper -v beeper-data:/var/lib/pgsql/data --net beeper-backend registry.ocp4.example.com:8443/rhel9/postgresql-13:1
+cd ~/DO188/labs/comprehensive-review/beeper-backend
+vi Containerfile
+
+    FROM registry.ocp4.example.com:8443/ubi8/openjdk-17:1.12 as builder
+    COPY --chown=jboss . .
+    RUN mvn -s settings.xml package
+
+    FROM registry.ocp4.example.com:8443/ubi8/openjdk-17-runtime:1.12
+    COPY --from=builder /home/jboss/target/beeper-1.0.0.jar .
+    ENTRYPOINT ["java", "-jar", "beeper-1.0.0.jar"]
+
+podman build -t beeper-api:v1 .
+podman run -d --name beeper-api --net beeper-backend,beeper-frontend -e DB_HOST=beeper-db beeper-api:v1
+
+cd ~/DO188/labs/comprehensive-review/beeper-ui
+vi Containerfile
+    FROM registry.ocp4.example.com:8443/ubi8/nodejs-16:1 AS builder
+    USER root
+    COPY . .
+    RUN npm install && \
+        npm run build
+
+    FROM registry.ocp4.example.com:8443/ubi8/nginx-118:1
+    COPY nginx.conf /etc/nginx/
+    COPY --from=builder /opt/app-root/src/build /usr/share/nginx/html
+    CMD nginx -g "daemon off;"
+
+podman build -t beeper-ui:v1 .
+podman run -d --name beeper-ui --net beeper-frontend -p 8080:8080 beeper-ui:v1

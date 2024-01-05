@@ -1,0 +1,44 @@
+lab start custom-lab
+cd ~/DO188/labs/custom-lab
+npm install
+npm start
+
+vi Containerfile
+
+            ###
+            FROM registry.ocp4.example.com:8443/redhattraining/podman-certificate-generator as certs          
+            RUN ./gen_certificates.sh
+
+            FROM registry.ocp4.example.com:8443/ubi8/nodejs-16:1
+            USER root
+            RUN groupadd -r student && useradd -r -m -g student student && \
+                npm config set cache /tmp/.npm --global
+            COPY --from=certs --chown=student:student /app/*.pem /etc/pki/tls/private/certs/
+            COPY --chown=student:student . /app/
+
+            ENV TLS_PORT=8443 \
+                HTTP_PORT=8080 \
+                CERTS_PATH="/etc/pki/tls/private/certs"
+
+            WORKDIR /app
+
+            USER student
+
+            RUN npm install --omit=dev
+
+            ENTRYPOINT npm start
+
+            ###
+
+podman build -t localhost/podman-qr-app .
+podman run --name=custom-lab -p 8080:8080 -p 8443:8443 podman-qr-app
+
+
+Summary
+Containerize a process by choosing a base image and by using the Containerfile instructions.
+Create rootless containers by creating Containerfiles that do not run as a privileged user.
+You can implement advanced container build and runtime patterns, which includes:
+The use of the ENV instruction to create containers that can be deployed in different environments.
+The use of the VOLUME instruction to store container data outside the container layered file system.
+The use of ENTRYPOINT, CMD, and their interactions.
+Creating multistage Containerfiles to build smaller images that do not contain build-time dependencies.

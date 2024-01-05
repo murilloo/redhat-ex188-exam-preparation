@@ -1,0 +1,22 @@
+lab start basics-podman
+podman exec basics-podman-secret ls /etc/secret-file
+cd ~/DO188/labs/basics-podman
+podman cp basics-podman-secret:/etc/secret-file solution
+podman network create lab-net
+podman run -d --name basics-podman-server  --net lab-net -p 8080:8080 registry.ocp4.example.com:8443/ubi8/httpd-24
+podman cp index.html basics-podman-server:/var/www/html/
+podman run -d --name basics-podman-client  --net lab-net registry.ocp4.example.com:8443/ubi8/httpd-24
+podman network inspect lab-net
+podman exec basics-podman-client  curl -s http://basics-podman-server:8080 && echo
+lab finish basics-podman
+
+Summary
+Use the podman run command to start a container.
+Implement container-to-container communication by using Podman networks, which include the following tasks:
+Managing Podman networks by using podman network subcommands.
+Attaching a container to a network.
+Use port-forwarding to expose a containerized process to the host environment.
+Use the podman stop or podman kill commands to stop a container.
+Use the podman ps command to list containers.
+Use the podman cp command to copy files into and out of containers.
+Manage the lifecycle of containers by using the podman start, podman pause, podman restart, and other Podman commands.

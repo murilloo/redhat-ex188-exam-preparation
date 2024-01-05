@@ -1,0 +1,24 @@
+lab start images-lab
+podman login -u developer -p developer registry.ocp4.example.com:8443
+cd ~/DO188/labs/images-lab
+podman build --file Containerfile --tag registry.ocp4.example.com:8443/developer/images-lab
+podman push registry.ocp4.example.com:8443/developer/images-lab
+podman tag registry.ocp4.example.com:8443/developer/images-lab registry.ocp4.example.com:8443/developer/images-lab:grue
+podman push registry.ocp4.example.com:8443/developer/images-lab:grue
+podman run -d --name images-lab -p 8080:8080 images-lab:grue
+curl localhost:8080
+lab finish images-lab
+
+
+Summary
+Use container registries to store and share container images.
+Red Hat provides several container registries for both official Red Hat images and for uploading your own.
+Configure container registries for Podman.
+Manage container images with Podman, including the following image operations:
+Listing
+Pulling
+Building
+Pushing
+Inspecting
+Tagging
+Removing
